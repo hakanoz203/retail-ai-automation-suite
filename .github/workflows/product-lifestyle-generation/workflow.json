@@ -1,0 +1,678 @@
+{
+  "name": "Konfor Use Case Factory",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1jkC-MFcMFPuUX8Z-TrJnNDkIfxAQ98qW",
+          "mode": "id"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "37f53632-141e-4542-9857-fb52d7ed055a",
+      "name": "Drive Trigger - New Product Image",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "id": "11a2eac0-9baf-4b4e-b6f6-e045fe028b14",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Drive Trigger - New Product Image').item.json.id }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        },
+        "options": {}
+      },
+      "id": "144a94ed-71be-4ccf-afa9-59fd87cfd346",
+      "name": "Make Public (for fal.ai)",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build a public URL fal.ai can fetch\nconst fileId = $('Drive Trigger - New Product Image').item.json.id;\nconst fileName = $('Drive Trigger - New Product Image').item.json.name;\n\n// Direct download URL — fal.ai can fetch from this\nconst publicUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;\n\nreturn [{\n  json: {\n    file_id: fileId,\n    file_name: fileName,\n    public_url: publicUrl\n  },\n  binary: $input.first().binary\n}];"
+      },
+      "id": "47a28e02-0153-459a-8ac8-bebfa6d950ba",
+      "name": "Build Public URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// item bir array veya array benzeri obje — ilk elemanı al\nconst msg = Array.isArray(item) ? item[0] : item['0'] || item;\n\n// content array'inden text bloğunu bul\nlet raw = '';\nif (Array.isArray(msg.content)) {\n  const textBlock = msg.content.find(b => typeof b?.text === 'string');\n  if (textBlock) raw = textBlock.text;\n}\n\nif (!raw) {\n  throw new Error('Text bulunamadi. msg: ' + JSON.stringify(msg).substring(0, 300));\n}\n\n// Temizle\nraw = raw.replace(/```json/gi, '').replace(/```/g, '').trim();\n\n// İlk { ile son } arasını al\nconst f = raw.indexOf('{');\nconst l = raw.lastIndexOf('}');\nif (f !== -1 && l !== -1) raw = raw.substring(f, l + 1);\n\nlet meta;\ntry {\n  meta = JSON.parse(raw);\n} catch (e) {\n  throw new Error('JSON parse hatasi. Metin: ' + raw);\n}\n\nconst buildUrl = $('Build Public URL').item.json;\n\nreturn [{\n  json: {\n    ...buildUrl,\n    ...meta\n  }\n}];"
+      },
+      "id": "77d49939-0784-4278-adfa-bba88d8c3c8a",
+      "name": "Parse Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "1da3731a6aaa4bf785adba359cc9220e",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "key": "kategori|select",
+              "condition": "equals",
+              "selectValue": "={{ $json.kategori }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4a914d10-24aa-4042-8966-113c75c63d61",
+      "name": "Fetch Scenarios for Category",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        0
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "LUBYmwVP6dvZwbW5",
+          "name": "KonforUseCase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pick one random scenario from the fetched list\nconst scenarios = $input.all();\nif (scenarios.length === 0) {\n  throw new Error('No scenarios found for category: ' + $('Parse Metadata').item.json.kategori);\n}\n\nconst picked = scenarios[Math.floor(Math.random() * scenarios.length)];\nconst props = picked.json.property_kategori !== undefined ? picked.json : picked.json.properties;\n\n// Notion node returns flattened properties — adjust field names to your DB columns\nconst senaryoId = picked.json.senaryo_id || picked.json.property_senaryo_id || '';\nconst trAciklama = picked.json.tr_aciklama || picked.json.property_tr_aciklama || '';\nconst enPromptFragment = picked.json.en_prompt_fragment || picked.json.property_en_prompt_fragment || '';\n\nconst meta = $('Parse Metadata').item.json;\n\nreturn [{\n  json: {\n    ...meta,\n    senaryo_id: senaryoId,\n    senaryo_tr: trAciklama,\n    senaryo_en: enPromptFragment\n  }\n}];"
+      },
+      "id": "85158684-f4e1-429e-ba53-47b81d96ebb0",
+      "name": "Pick Random Scenario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the final FLUX.1 Kontext prompt\nconst d = $input.first().json;\n\nconst categoryLabel = {\n  koltuk_takimi: 'living room sofa set',\n  kose_takimi: 'corner sectional sofa',\n  yemek_odasi: 'dining room set',\n  yatak_odasi: 'bedroom set'\n}[d.kategori] || 'furniture';\n\nconst prompt = `Edit this ${d.stil} ${categoryLabel} product photo: add ${d.senaryo_en} to the scene.\n\nCRITICAL preservation rules:\n- Keep the exact same furniture, fabric texture, color (${d.ana_renk}), and design\n- Maintain identical camera angle, perspective, framing, and depth of field\n- Preserve the original lighting direction (${d.isik_yonu}) and color temperature\n- Do not change the walls, floor, ceiling, or any background elements\n- Do not add or remove any furniture pieces\n- The added person must look natural with realistic shadows matching the scene\n- Photorealistic style for furniture e-commerce catalog\n- High detail, sharp focus on furniture, natural skin tones`;\n\nreturn [{\n  json: {\n    ...d,\n    final_prompt: prompt\n  }\n}];"
+      },
+      "id": "8c87f19b-465f-473d-81ed-3cf579d78538",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.images[0].url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "4f2be054-a85d-459d-8930-9a61c9482543",
+      "name": "Download Generated Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3344,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{ $('Build Prompt').item.json.file_name.replace(/\\.[^.]+$/, '') }}_usecase_{{ $('Build Prompt').item.json.senaryo_id }}.jpg",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "10ge9tzbwJWPWsTlc8fSgvpi2_EalTnwh",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "2c7e9480-d9f0-4e78-99a8-62f3e110cadd",
+      "name": "Save to /Generated",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3536,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "36ee668441698035b6dcf0dd74e6e8b0",
+          "mode": "id"
+        },
+        "title": "={{ $('Build Prompt').item.json.file_name }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Kategori|select",
+              "selectValue": "={{ $('Build Prompt').item.json.kategori }}"
+            },
+            {
+              "key": "Senaryo|rich_text",
+              "textContent": "={{ $('Build Prompt').item.json.senaryo_tr }}"
+            },
+            {
+              "key": "Senaryo ID|rich_text",
+              "textContent": "={{ $('Build Prompt').item.json.senaryo_id }}"
+            },
+            {
+              "key": "Orijinal URL|url",
+              "urlValue": "={{ $('Build Prompt').item.json.public_url }}"
+            },
+            {
+              "key": "Uretilen URL|url",
+              "urlValue": "={{ $('Save to /Generated').item.json.webViewLink }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "Pending Approval"
+            },
+            {
+              "key": "Retry Count|number"
+            },
+            {
+              "key": "Prompt|rich_text",
+              "textContent": "={{ $('Build Prompt').item.json.final_prompt }}"
+            },
+            {
+              "key": "Ana Renk|rich_text",
+              "textContent": "={{ $('Build Prompt').item.json.ana_renk }}"
+            },
+            {
+              "key": "Stil|select",
+              "selectValue": "={{ $('Build Prompt').item.json.stil }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4f62ef32-9d9e-46bb-8578-8f09fd9c638d",
+      "name": "Create Pending Approval Row",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        3792,
+        0
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "LUBYmwVP6dvZwbW5",
+          "name": "KonforUseCase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Sen Konfor Mobilya'nın ürün fotoğraflarını sınıflandıran bir uzman \ngörsel analiz asistanısın. Görevin, sana verilen mobilya ürün \nfotoğrafını analiz edip yapılandırılmış metadata üretmek.\n\nKATEGORİLER (sadece bu dördünden birini seç):\n\n1. \"koltuk_takimi\" — Düz oturma grupları. İkili/üçlü kanepe + tekli \n   berjer kombinasyonları. L veya U şekli YOKSA bu kategoridir.\n\n2. \"kose_takimi\" — L veya U şeklinde köşe dönüşü olan oturma grupları. \n   Ayırt edici özellik: koltuğun bir ucunun 90 derece dönmesi veya \n   uzanma (chaise longue) bölümü olması.\n\n3. \"yemek_odasi\" — Yemek masası + sandalye grupları. Vitrin/konsol \n   eşlik edebilir. Ana ayırt edici: yemek masası varlığı.\n\n4. \"yatak_odasi\" — Karyola/baza ana unsur. Gardırop, komodin, \n   şifonyer eşlik edebilir.\n\nAYIRT ETME KURALLARI:\n- Köşe takımı ile koltuk takımı karışıyorsa: oturma yüzeyinde 90° \n  dönüş veya uzanma bölümü varsa → kose_takimi, yoksa → koltuk_takimi\n- Bir fotoğrafta birden fazla kategori görünüyorsa, fotoğrafın ANA \n  ürününü (en büyük, en merkezi, en net) baz al\n- Emin değilsen \"guven\" değerini düşük ver, tahmin etme\n\nÇIKTI FORMATI:\nYanıtını SADECE aşağıdaki JSON olarak ver. Markdown code fence (```) \nKULLANMA. JSON öncesinde veya sonrasında HİÇBİR açıklama, selamlama \nveya yorum yazma. İlk karakter { olmalı, son karakter } olmalı.\n\n{\n  \"kategori\": \"koltuk_takimi | kose_takimi | yemek_odasi | yatak_odasi\",\n  \"guven\": 85,\n  \"ana_renk\": \"ürünün dominant rengi (tek kelime: gri/bej/kahverengi/beyaz/siyah/mavi/yeşil/antrasit vb.)\",\n  \"ikincil_renk\": \"varsa yastık/detay rengi, yoksa null\",\n  \"stil\": \"modern | klasik | avangart | rustic | minimalist\",\n  \"malzeme\": \"kumaş/deri/kadife/ahşap (görünen ana malzeme)\",\n  \"oda_tipi\": \"living_room | dining_room | bedroom\",\n  \"isik_yonu\": \"sol | sag | on | arka | ust\",\n  \"isik_tipi\": \"dogal | yapay | karisik\",\n  \"arka_plan\": \"arka plandaki ortamın 2-3 kelimelik tanımı (örn: 'açık gri duvar, ahşap zemin')\",\n  \"bos_alan\": \"fotoğrafta insanın doğal yerleşebileceği yer (örn: 'sol koltuk', 'masa başı', 'yatağın kenarı')\",\n  \"genel_aciklama\": \"ürünün 3-5 kelimelik özeti\"\n}\n\nÖNEMLİ: \"isik_yonu\", \"bos_alan\" ve \"arka_plan\" alanları sonraki \ngörsel üretim adımı için kritik — bunları dikkatli ve doğru doldur.",
+        "imageUrls": "={{ $json.public_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        0
+      ],
+      "id": "3b9ca9b8-16a7-4968-aaf7-6a2f76532a59",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "QlE7EI0BcN02zeJz",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/flux-2-pro/edit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {{ JSON.stringify($('Build Prompt').item.json.final_prompt) }},\n  \"image_urls\": [\n    {{ JSON.stringify($('Build Prompt').item.json.public_url) }}\n  ],\n  \"image_size\": \"auto\",\n  \"output_format\": \"jpeg\",\n  \"safety_tolerance\": \"2\",\n  \"enable_safety_checker\": true\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "e4316900-0082-484d-adbb-10cfd6b784b2",
+      "name": "Send Post Req Fal.ai",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2352,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2560,
+        0
+      ],
+      "id": "72faae52-1736-488b-9c52-b4fad140ab54",
+      "name": "Wait",
+      "webhookId": "afb14389-8770-4612-b073-efac701b61ce"
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/flux-2-pro/requests/{{ $json.request_id }}/status",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2768,
+        0
+      ],
+      "id": "403afa99-b4cc-4db3-b6b0-d5af5784cd0a",
+      "name": "Check Status (GET)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/flux-2-pro/requests/{{ $json.request_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3136,
+        0
+      ],
+      "id": "d01d0f6e-9923-44ec-902d-96c60efba40b",
+      "name": "Retrieve Result",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "749dafad-b0a0-49e9-838c-ecd3cb8d70f5",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "COMPLETED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2912,
+        0
+      ],
+      "id": "01796877-d9b3-4f30-bdf4-648c0612c979",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Drive Trigger - New Product Image": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Make Public (for fal.ai)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make Public (for fal.ai)": {
+      "main": [
+        [
+          {
+            "node": "Build Public URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Public URL": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Metadata": {
+      "main": [
+        [
+          {
+            "node": "Fetch Scenarios for Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Scenarios for Category": {
+      "main": [
+        [
+          {
+            "node": "Pick Random Scenario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Random Scenario": {
+      "main": [
+        [
+          {
+            "node": "Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Send Post Req Fal.ai",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Generated Image": {
+      "main": [
+        [
+          {
+            "node": "Save to /Generated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to /Generated": {
+      "main": [
+        [
+          {
+            "node": "Create Pending Approval Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Parse Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Post Req Fal.ai": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Status (GET)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status (GET)": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Result": {
+      "main": [
+        [
+          {
+            "node": "Download Generated Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "babb91cc-1b51-4cee-8ccc-c8f0dd35ab90",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bcb72e030ac62626a86fecc8ea70883c5536a33a29144b86de732ea83ce76ccf"
+  },
+  "id": "DeMQJdOTl-WP4qBh0rDye",
+  "tags": [
+    {
+      "updatedAt": "2026-05-28T03:04:52.516Z",
+      "createdAt": "2026-05-28T03:04:52.516Z",
+      "id": "4FEddflQnw26Wly0",
+      "name": "konfor"
+    },
+    {
+      "updatedAt": "2026-05-28T03:04:52.517Z",
+      "createdAt": "2026-05-28T03:04:52.517Z",
+      "id": "apx67Kna5PaV9EUJ",
+      "name": "image-generation"
+    },
+    {
+      "updatedAt": "2026-05-28T03:04:52.519Z",
+      "createdAt": "2026-05-28T03:04:52.519Z",
+      "id": "ww0AtFj3oTc1a3eY",
+      "name": "fal-ai"
+    }
+  ]
+}
