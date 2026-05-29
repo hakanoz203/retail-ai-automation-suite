@@ -1,0 +1,523 @@
+{
+  "name": "KonforYatak Blog Post Form",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Konfor Yatak — Blog Yazısı Oluştur",
+        "formDescription": "Yazmak istediğiniz blog konusunu girin, gerisini AI halleder.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "blogTopic",
+              "placeholder": "Örn: Bel fıtığı için doğru yatak seçimi",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        1872,
+        304
+      ],
+      "id": "b134f717-921a-4c6e-bf10-a9cc6773ee86",
+      "name": "Form Trigger",
+      "webhookId": "8f5140a8-a30d-4057-9a9f-e58e4f340482"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the web.",
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"query\": \"{searchTerm}\",\n  \"topic\": \"general\",\n  \"search_depth\": \"advanced\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 3,\n  \"time_range\": null,\n  \"days\": 365,\n  \"include_answer\": true,\n  \"include_raw_content\": false,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": [\"trendyol.com\", \"hepsiburada.com\", \"n11.com\"]\n}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "searchTerm",
+              "description": "What the user is searching for."
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        2144,
+        560
+      ],
+      "id": "4c9a2cfd-2c20-493e-86d5-67af2c1baed7",
+      "name": "Tavily",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "C36sKgoBeZH0zIpc",
+          "name": "Tavily AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Blog Yazısı: \n{{ $json.output }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Genel Bakış\nSen Konfor Yatak markası için blog yazılarını, görsel pazarlama materyalleri üretmek amacıyla görsel prompt açıklamalarına dönüştüren bir yapay zeka ajansısın. Bu görseller blog yazısıyla eşleştirilecek, markanın e-ticaret sitesinde kullanılacak.\n\n## Görev:\n- Verilen blog yazısını oku ve analiz et.\n- Ana mesajı, içgörüyü veya çıkarımı tespit et.\n- Metinle birlikte kullanılmak üzere metin-görsel oluşturucu için net ve etkileyici bir grafik prompt'u yaz.\n- Sonuç, pazarlama tarzı bir grafik olmalı — gerçekçi fotoğraf veya gerçek bir sahne değil. Bu grafik:\n1) Yazının ana fikrini görsel olarak desteklemeli veya örneklemeli\n2) Bir e-ticaret blog sayfasında profesyonelce görünmeli\n3) Premium, modern ve sıcak bir his vermeli\n\n## Çıktı Talimatları:\n- İki alan çıkar:\n1) title (2-4 kelime, Türkçe)\n2) prompt (Türkçe, görsel üretici için)\n- Sadece nihai görsel prompt'u çıkar. Tırnak işareti kullanma.\n- Blog yazısını tekrarlama veya yeniden ifade etme.\n- Açıklama veya ekstra içerik ekleme — sadece görsel prompt.\n- Asla 'Header area reserved for customizable callout text' gibi boş alanlar bırakma.\n- Orijinal yazıda sayısal istatistik varsa görsele dahil et.\n\n## Stil Yönergeleri:\n- Konfor Yatak'ın renk dünyasına uygun düşün: krem, bej, soft beyaz, açık mavi/gri tonlar.\n- Uyku, dinlenme, huzur ve ev konforu temasını yansıtsın.\n- Görseller şunları içerebilir: tipografi öğeleri, ikonlar, soyut şekiller, modern illüstrasyonlar, yumuşak gradyanlar, metaforik konseptler.\n- Yerleşim önerileri yapabilirsin (örn. 'split screen tasarım', 'üstte kalın başlık, arka planda yumuşak yatak illüstrasyonu').\n- Çıktının AI görsel araçlarıyla üretileceğini varsay — prompt bu araçları etkin biçimde yönlendirmeli.\n\n## Örnek Prompt Formatı:\nYumuşak krem ve bej tonlarında huzurlu, minimalist bir yatak odası sahnesi, kabarık yastıklarla düzgünce hazırlanmış bir yatak, hafif tül perdelerden süzülen sıcak sabah ışığı. Üst kısmında temiz tipografi alanına sahip modern, düz tarzda pazarlama grafiği. Sakin, premium uyku atmosferi.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2576,
+        304
+      ],
+      "id": "bbe60f24-a055-4623-a0f8-254c7d7fcc85",
+      "name": "Image Prompt Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Blog Konusu: {{ $json.blogTopic }}\n\nHedef Kitle: Uyku kalitesini ve beden sağlığını önemseyen, kaliteli yatak ve uyku ürünleri arayan Türk tüketicileri",
+        "options": {
+          "systemMessage": "=# Genel Bakış\nSen Konfor Yatak markası için profesyonel, eğitici ve SEO uyumlu Türkçe blog yazıları oluşturan bir yapay zeka ajansısın.\n\n## Marka Profili:\n- Marka adı: Konfor Yatak\n- Ürün yelpazesi: Yatak (lateks, visco, yaylı, ortopedik), baza & başlık, yastık (bambu, boyun destekli, silikon), yorgan, alez, ev tekstili\n- Tone of voice: Samimi, güvenilir, bilgilendirici. Ne çok teknik ne çok sıradan — sağlık bilincine sahip Türk tüketicisine hitap eder.\n- Blog kategorileri: Yatak Seçimi, Yatak, Uyku, Yatak Odası, Yastık, Yorgan, Alez, Fırsatlar\n\n## Görev:\nHer zaman önce Tavily aracını kullanarak konuyla ilgili güncel bilgi topla. Ardından şu özelliklere sahip bir blog yazısı üret:\n\n- Konunun önemini ortaya koyan ilgi çekici bir girişle başla\n- Türkçe, akıcı ve anlaşılır bir dil kullan\n- Başlık, alt başlık ve paragraflarla okunabilirliği artır\n- Gerçek veriler, araştırmalar veya örnekler kullan; kaynağa atıf yap (örn. '[kaynak] araştırmasına göre')\n- Mümkün olduğunda Konfor Yatak ürünlerine (yatak modelleri, yastık çeşitleri vb.) doğal biçimde değin — reklam yapar gibi değil, çözüm önerir gibi\n- Emoji kullanımı çok sınırlı olsun (sadece çok uygunsa ve minimal)\n- Ana çıkarımları özetleyen doğal bir sonuçla bitir\n- Okuyucuya ilgili ürün veya konularda yönlendirme önerileri ekle\n\n## Çıktı Talimatları:\n- YALNIZCA nihai blog yazısı metnini çıkar.\n- Açıklama, not veya başka içerik ekleme.\n\n## Örnek Akış:\n1) Konu al (örn. 'Bel fıtığı için doğru yatak nasıl seçilir')\n2) Tavily ile güncel bilgi topla\n3) Araştırmaya dayalı blog yazısı taslağı oluştur\n4) İlgi çekici giriş, yapılandırılmış bölümler, kaynak atıfları ve doğal bir sonuçla formatla"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2144,
+        304
+      ],
+      "id": "6103fbd3-e128-4186-9d58-1d55eefe0054",
+      "name": "Blog Post Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"<2-4 kelimelik Türkçe yaratıcı başlık>\",\n  \"prompt\": \"<tam detaylı İngilizce görsel üretim prompt'u>\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2672,
+        592
+      ],
+      "id": "0696ebd9-bd7a-40a3-9bf9-71e7fabb63c1",
+      "name": "Image & Title"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        576
+      ],
+      "id": "152a708f-dbc2-4eac-8063-638125fb0613",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "QlE7EI0BcN02zeJz",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5a719e80-f0ed-4fb9-9d73-244dff5f6a62",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "COMPLETED",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3648,
+        304
+      ],
+      "id": "f4463371-2386-4259-8eb5-d6be148533e8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 4
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3280,
+        304
+      ],
+      "id": "3d0d4882-df28-4324-bff0-0c3c71a85a26",
+      "name": "Wait",
+      "webhookId": "77267c7d-ae59-46d1-9d9e-e73652338e75"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/nano-banana",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.output.prompt.replace(/\"/g, '') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3072,
+        304
+      ],
+      "id": "5c0b8834-5661-49f7-97cb-de77a79c66a8",
+      "name": "İstek",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/nano-banana/requests/{{ $('İstek').item.json.request_id }}/status",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3440,
+        304
+      ],
+      "id": "81698673-1533-4633-bd6d-3800180b5a29",
+      "name": "Kontrol",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/nano-banana/requests/{{ $json.request_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3856,
+        288
+      ],
+      "id": "32e98d60-275e-4173-838e-f8e0e5225b01",
+      "name": "Sonuç",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3442d071-5d24-403c-857d-47e4f2b6f958",
+              "name": "blog",
+              "value": "={{ $('Blog Post Agent').item.json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "d49b7737-063e-4c32-bbab-020d76ea1a90",
+              "name": "image",
+              "value": "={{ $json.images[0].url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4064,
+        288
+      ],
+      "id": "cae0958b-0b25-414c-858f-5c85537a8a74",
+      "name": "result"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "e42481ec-203d-471b-b91f-5bb1758caff8",
+          "mode": "list",
+          "cachedResultName": "Konfor Yatak Blog Yazıları",
+          "cachedResultUrl": "https://www.notion.so/e42481ec203d471bb91f5bb1758caff8"
+        },
+        "title": "={{ $('Blog Post Agent').item.json.output.split('\\n')[0].replace(/^#+\\s*/, '') }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Başlık|title",
+              "title": "={{ $('Blog Post Agent').item.json.output.split('\\n')[0].replace(/^#+\\s*/, '') }}"
+            },
+            {
+              "key": "Görsel URL|url",
+              "urlValue": "={{ $('result').item.json.image }}"
+            },
+            {
+              "key": "Tarih|date",
+              "date": "={{ $now }}",
+              "timezone": "Europe/Istanbul"
+            },
+            {
+              "key": "Durum|select",
+              "selectValue": "Taslak"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "={{ $('Blog Post Agent').item.json.output.substring(0, 2000) }}"
+            },
+            {
+              "textContent": "={{ $('Blog Post Agent').item.json.output.substring(2000, 4000) }}"
+            },
+            {
+              "textContent": "={{ $('Blog Post Agent').item.json.output.substring(4000, 6000) }}"
+            },
+            {
+              "textContent": "={{ $('Blog Post Agent').item.json.output.substring(6000) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        4272,
+        288
+      ],
+      "id": "2d302eba-9e48-4044-89bd-2a4e86996f6a",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "NqPcdkXDACDqJiGi",
+          "name": "NotionKonforBlog"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Blog Post Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Blog Post Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Prompt Agent": {
+      "main": [
+        [
+          {
+            "node": "İstek",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blog Post Agent": {
+      "main": [
+        [
+          {
+            "node": "Image Prompt Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image & Title": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Image Prompt Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Blog Post Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Image Prompt Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Sonuç",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Kontrol",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "İstek": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kontrol": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sonuç": {
+      "main": [
+        [
+          {
+            "node": "result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "result": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b6f8a7ac-65d1-4590-aac4-6de859e81c12",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bcb72e030ac62626a86fecc8ea70883c5536a33a29144b86de732ea83ce76ccf"
+  },
+  "id": "NuQvspyrN3criT6IdSMDy",
+  "tags": []
+}
