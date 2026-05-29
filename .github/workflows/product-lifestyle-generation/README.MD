@@ -6,7 +6,6 @@
 
 [![n8n](https://img.shields.io/badge/n8n-2.6.4+-EA4B71?style=flat-square&logo=n8n&logoColor=white)](https://n8n.io/)
 [![fal.ai](https://img.shields.io/badge/fal.ai-FLUX.2_Pro_Edit-blueviolet?style=flat-square)](https://fal.ai/)
-[![Claude](https://img.shields.io/badge/Claude-Opus_4.7-D97757?style=flat-square)](https://www.anthropic.com/)
 [![Notion](https://img.shields.io/badge/Notion-API-000000?style=flat-square&logo=notion&logoColor=white)](https://www.notion.so/)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
