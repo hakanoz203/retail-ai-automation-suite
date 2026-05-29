@@ -1,0 +1,501 @@
+{
+  "name": "Furniture Lifestyle Image Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1KuYPEXJIArW6Z2BrSUrEgueqnDPU9B8-"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "b75adc47-69b0-4106-baeb-536c5149683e",
+      "name": "Google Drive Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        192
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "mime-check",
+              "leftValue": "={{ $json.mimeType }}",
+              "rightValue": "image/png",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "size-check",
+              "leftValue": "={{ $json.size }}",
+              "rightValue": 52428800,
+              "operator": {
+                "type": "number",
+                "operation": "smallerThan"
+              }
+            },
+            {
+              "id": "48a388d7-a1e1-4b7b-8c82-e5021a5864dc",
+              "leftValue": "={{ Number($json.size) }}",
+              "rightValue": 52428800,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "looseTypeValidation": true
+        }
+      },
+      "id": "41335926-5d4a-423b-a1a4-7002e692c2ab",
+      "name": "MIME + Size Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "data",
+          "googleFileConversion": {},
+          "fileName": "={{ $json.name }}"
+        }
+      },
+      "id": "9ec4321a-7195-4ba9-a15f-0bc70deca9bc",
+      "name": "Google Drive Download",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1904,
+        112
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/flux-2-lora-gallery/add-background",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"image_urls\": [\n    \"{{ $json.myBase64Image }}\"\n  ],\n  \"prompt\": \"Add Background a tight close-up product shot in a clean minimalist studio. The object is placed directly and flat against a soft pastel plaster back wall. Monochromatic or complementary color palette matching the object. Subtle natural lighting. Smooth matte floor. The object is resting against the wall, maintaining original scaleg. No other furniture, highly detailed, professional e-commerce photography, 8k\",\n  \"lora_scale\": 0.85\n}",
+        "options": {}
+      },
+      "id": "69d2f9a8-fd3c-4354-9015-69cadfd44fa8",
+      "name": "Fal.ai Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2416,
+        112
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.images[0].url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "final_image"
+            }
+          }
+        }
+      },
+      "id": "c467cec0-55c7-4a93-bb8d-011d5443e961",
+      "name": "Download Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3552,
+        112
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "final_image",
+        "name": "=Rendered_{{ $node[\"Google Drive Trigger\"].json.name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1rKU1LiiZVaIuosEIxVk6F2GulhrHHrwC",
+          "mode": "list",
+          "cachedResultName": "02_LIFESTYLE_OUTPUT",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1rKU1LiiZVaIuosEIxVk6F2GulhrHHrwC"
+        },
+        "options": {}
+      },
+      "id": "624b3887-f3d5-4fde-80c7-3705a8f5569d",
+      "name": "Google Drive Upload",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3824,
+        112
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $node[\"Google Drive Trigger\"].json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1kp3cDUhog6YM6Xe3PRnDezbnZV-si-yZ",
+          "mode": "list",
+          "cachedResultName": "03_ARCHIVE_RAW",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1kp3cDUhog6YM6Xe3PRnDezbnZV-si-yZ"
+        }
+      },
+      "id": "f7b5df0f-d31a-4512-809c-0e79dc88664e",
+      "name": "Archive Original",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4048,
+        112
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HCBrViTkUMUgGe9h",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2912,
+        112
+      ],
+      "id": "006037a3-5131-43c9-8d60-17b69b1ca75d",
+      "name": "Wait",
+      "webhookId": "3b06eefa-d3a1-495c-bae5-20019a71bc45"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "447623f5-9312-4eae-989d-04ad49386bb4",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "COMPLETED",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3088,
+        112
+      ],
+      "id": "3e4077b5-8bc3-47f5-b4ab-12c8e040dac7",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/flux-2-lora-gallery/requests/{{ $json.request_id }}/status",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2704,
+        112
+      ],
+      "id": "688ad65c-b93c-4552-a64c-545c1384dc01",
+      "name": "status kontrol",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/flux-2-lora-gallery/requests/{{ $('status kontrol').item.json.request_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3296,
+        16
+      ],
+      "id": "8901181e-06b0-4c4d-affb-676b343f8611",
+      "name": "Get Image",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GJ4miPtprZ1rEoRf",
+          "name": "Fal.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// N8n 'separate' modunda diske yazılan binary veriyi güvenle RAM'e çeker\nconst binaryBuffer = await this.helpers.getBinaryDataBuffer(0, 'data');\n\n// Veriyi Base64 metnine dönüştürür\nconst base64Data = binaryBuffer.toString('base64');\nconst mimeType = $input.item.binary.data.mimeType;\n\n// Fal.ai için kusursuz URI formatını oluşturup JSON'a yeni bir değişken olarak ekler\n$input.item.json.myBase64Image = `data:${mimeType};base64,${base64Data}`;\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        112
+      ],
+      "id": "ad995540-a73d-46bb-b959-e5224449fcbd",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "MIME + Size Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MIME + Size Check": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Google Drive Download",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Download": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fal.ai Generate": {
+      "main": [
+        [
+          {
+            "node": "status kontrol",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Result": {
+      "main": [
+        [
+          {
+            "node": "Google Drive Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Upload": {
+      "main": [
+        [
+          {
+            "node": "Archive Original",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "status kontrol",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "status kontrol": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Image": {
+      "main": [
+        [
+          {
+            "node": "Download Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Fal.ai Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "97577502-2c89-43a3-835d-286aaeca2cb1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bcb72e030ac62626a86fecc8ea70883c5536a33a29144b86de732ea83ce76ccf"
+  },
+  "id": "tEmNIN6EsLdm1wMeen9ZF",
+  "tags": []
+}
