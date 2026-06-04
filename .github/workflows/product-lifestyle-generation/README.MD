@@ -104,7 +104,7 @@ Kritik kısıtlama: **mobilyanın kendisi, kamera açısı, ışık ve arka plan
 |---|---|---|
 | Orkestrasyon | n8n (self-hosted) | Workflow motoru |
 | Görsel depolama | Google Drive | Inbox/Generated/Final klasörleri |
-| Vision AI | Claude Opus 4.7 (Anthropic API) | Ürün kategorizasyonu ve metadata çıkarımı |
+| Vision AI |  ChatGpt-4O (OpenAI API) | Ürün kategorizasyonu ve metadata çıkarımı |
 | Veritabanı | Notion | Senaryo havuzu + onay tablosu |
 | Görsel üretimi | fal.ai FLUX.2 Pro Edit | Premium image-to-image editing |
 
@@ -116,7 +116,7 @@ Sistemi kurmaya başlamadan önce şunlara ihtiyacın var:
 
 - ✅ Self-hosted n8n instance (v2.6.4+)
 - ✅ Google Drive hesabı + OAuth credentials
-- ✅ Anthropic API key ([console.anthropic.com](https://console.anthropic.com))
+- ✅ OpenAI API key
 - ✅ Notion hesabı + Internal Integration token
 - ✅ fal.ai hesabı + API key ([fal.ai/dashboard/keys](https://fal.ai/dashboard/keys))
 
@@ -234,8 +234,8 @@ Workflow 13 node'dan oluşur:
 | 2 | Download Image | Google Drive | Tetiklenen dosyayı indirir |
 | 3 | Make Public | Google Drive | fal.ai için dosyayı public yapar |
 | 4 | Build Public URL | Code | Drive direct download URL'si üretir |
-| 5 | Categorize with Claude | Anthropic | Vision API ile metadata çıkarır |
-| 6 | Parse Metadata | Code | Claude çıktısını güvenli parse eder |
+| 5 | Categorize with ChatGPT | OpenAI | Vision API ile metadata çıkarır |
+| 6 | Parse Metadata | Code | ChatGPT çıktısını güvenli parse eder |
 | 7 | Fetch Scenarios | Notion | Kategoriye uyan senaryoları çeker |
 | 8 | Pick Random Scenario | Code | Havuzdan rastgele birini seçer |
 | 9 | Build Prompt | Code | FLUX.2 için final prompt inşa eder |
@@ -335,5 +335,5 @@ Pull request'ler memnuniyetle karşılanır. Büyük değişiklikler için önce
 
 - [Konfor Mobilya](https://konfor.com.tr) - Use case ilhamı
 - [n8n](https://n8n.io) - Workflow motoru
-- [OpenAI](https://www.Openai.com) - Claude vision API
+- [OpenAI](https://www.openai.com) - ChatGPT vision API
 - [fal.ai](https://fal.ai) - FLUX.2 Pro Edit
