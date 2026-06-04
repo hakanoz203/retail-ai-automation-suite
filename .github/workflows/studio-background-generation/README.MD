@@ -1,4 +1,4 @@
-# 🏭 Studio-BG-Gen: Autonomous E-Commerce Lifestyle Orchestrator for Konfor
+#  Studio-BG-Gen: Autonomous E-Commerce Lifestyle Orchestrator for Konfor
 
 ##  Proje Hakkında 
 E-ticaret ve mobilya sektöründe yapay zeka destekli görsel üretimir. Standart "Text-to-Image" modelleri, ürünün geometrisini bozar, orijinali değiştirir ve objeyi odanın ortasında havada yüzdürür. 
