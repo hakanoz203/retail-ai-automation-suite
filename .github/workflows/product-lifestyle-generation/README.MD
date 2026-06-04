@@ -13,7 +13,7 @@
 
 ---
 
-## 📖 Proje Hakkında
+##  Proje Hakkında
 
 Konfor Use Case Factory, e-ticaret mobilya kataloglarındaki **boş ürün fotoğraflarını**, ürünün fiilen kullanıldığı **"use case" görsellerine** otonom olarak dönüştüren bir n8n otomasyon sistemidir.
 
@@ -27,7 +27,7 @@ Konfor Use Case Factory, e-ticaret mobilya kataloglarındaki **boş ürün foto�
 
 Kritik kısıtlama: **mobilyanın kendisi, kamera açısı, ışık ve arka plan birebir korunur.** Sadece sahneye doğal görünümlü insan(lar) eklenir.
 
-### 🎯 Kullanım Alanları
+###  Kullanım Alanları
 
 - E-ticaret galeri görselleri (ana ürün fotoğrafının yanına use case versiyonu)
 - Sosyal medya ve reklam içerikleri
@@ -47,7 +47,7 @@ Kritik kısıtlama: **mobilyanın kendisi, kamera açısı, ışık ve arka plan
 
 ---
 
-## 🏗️ Sistem Mimarisi
+##  Sistem Mimarisi
 
 ```
 ┌─────────────────────┐
@@ -98,7 +98,7 @@ Kritik kısıtlama: **mobilyanın kendisi, kamera açısı, ışık ve arka plan
 
 ---
 
-## 🛠️ Teknoloji Stack
+##  Teknoloji Stack
 
 | Bileşen | Teknoloji | Rol |
 |---|---|---|
@@ -127,7 +127,7 @@ Sistemi kurmaya başlamadan önce şunlara ihtiyacın var:
 
 ---
 
-## 🚀 Kurulum
+##  Kurulum
 
 ### 1️⃣ Google Drive klasör yapısı
 
@@ -170,7 +170,7 @@ Her klasörün **ID**'sini al (klasör URL'sinden alınır). Bunları workflow J
 | `Ana Renk` | Rich text |
 | `Stil` | Select: `modern`, `klasik`, `avangart`, `rustic`, `minimalist` |
 
-> ⚠️ **Önemli:** Notion Integration'ını her iki veritabanına da "Connect" etmeyi unutma. Bağlı değilse n8n boş döner.
+>  **Önemli:** Notion Integration'ını her iki veritabanına da "Connect" etmeyi unutma. Bağlı değilse n8n boş döner.
 
 ### 3️⃣ Senaryo havuzunu seed et
 
@@ -224,7 +224,7 @@ konfor-use-case-factory/
 
 ---
 
-## 🧩 Node Detayları
+##  Node Detayları
 
 Workflow 13 node'dan oluşur:
 
@@ -246,7 +246,7 @@ Workflow 13 node'dan oluşur:
 
 ---
 
-## 🎨 fal.ai FLUX.2 Pro Edit Konfigürasyonu
+##  fal.ai FLUX.2 Pro Edit Konfigürasyonu
 
 Sistem, fal.ai'nin en güncel premium düzenleme modeli olan **FLUX.2 Pro Edit** kullanır. Mobilyanın korunması ve insan eklenmesi için optimize edilmiş body:
 
@@ -268,7 +268,7 @@ Sistem, fal.ai'nin en güncel premium düzenleme modeli olan **FLUX.2 Pro Edit**
 
 ---
 
-## 🤖 Kategorize Agent Sistem Prompt'u
+##  Kategorize Agent Sistem Prompt'u
 
 ChatGPT-4O vision agent, ürünü 4 kategoriden birine yerleştirir ve sonraki adımlar için zengin metadata üretir.
 
@@ -293,7 +293,7 @@ ChatGPT-4O vision agent, ürünü 4 kategoriden birine yerleştirir ve sonraki a
 
 ---
 
-## 💡 Kullanım İpuçları
+##  Kullanım İpuçları
 
 ### Daha iyi sonuçlar için
 
@@ -313,25 +313,25 @@ ChatGPT-4O vision agent, ürünü 4 kategoriden birine yerleştirir ve sonraki a
 
 ---
 
-## 🤝 Katkıda Bulunma
+##  Katkıda Bulunma
 
 Pull request'ler memnuniyetle karşılanır. Büyük değişiklikler için önce bir issue açıp ne yapmayı planladığını tartışmanı rica ederim.
 
 Özellikle katkıya açık alanlar:
-- 🎭 Yeni senaryo önerileri (daha çeşitli persona ve durumlar)
-- 🌐 Diğer mobilya markalarına adaptasyon
-- 📊 Prompt dizayn ve sistem promptu iyileştirmeleri
-- 🔧 Workflow optimizasyonları
+-  Yeni senaryo önerileri (daha çeşitli persona ve durumlar)
+-  Diğer mobilya markalarına adaptasyon
+-  Prompt dizayn ve sistem promptu iyileştirmeleri
+-  Workflow optimizasyonları
 ---
 
 **Hakan Özdemir**
 
-- 💼 AI Automation & LLM Orchestration
-- 🔧 n8n workflows, LangChain, Notion APIs
+-  AI Automation & LLM Orchestration
+-  n8n workflows, LangChain, Notion APIs
 
 ---
 
-## 🙏 Teşekkürler
+##  Teşekkürler
 
 - [Konfor Mobilya](https://konfor.com.tr) - Use case ilhamı
 - [n8n](https://n8n.io) - Workflow motoru
